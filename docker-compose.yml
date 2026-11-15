@@ -1,0 +1,34 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: colabs-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  colabs-api:
+    build: .
+    container_name: colabs-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle.fiap.com.br:1521:orcl
+      SPRING_DATASOURCE_USERNAME: ${ORACLE_USER:-rm564232}
+      SPRING_DATASOURCE_PASSWORD: ${ORACLE_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+      SPRING_RABBITMQ_LISTENER_SIMPLE_AUTO_STARTUP: "true"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder-offline-fallback}
