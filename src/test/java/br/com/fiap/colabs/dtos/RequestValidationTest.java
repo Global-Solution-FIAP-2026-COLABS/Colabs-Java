@@ -24,7 +24,7 @@ class RequestValidationTest {
 
     @Test
     void shouldFailWhenCitizenCpfHasInvalidFormat() {
-        CitizenRequest request = new CitizenRequest("João Silva", "123", "(11) 99999-0000", "Centro");
+        CitizenRequest request = new CitizenRequest("João Silva", "123", "(11) 99999-0000", "Rua das Flores, 123");
         Set<ConstraintViolation<CitizenRequest>> violations = validator.validate(request);
 
         assertFalse(violations.isEmpty());

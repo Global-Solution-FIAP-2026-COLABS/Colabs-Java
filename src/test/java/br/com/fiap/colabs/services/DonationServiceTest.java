@@ -55,8 +55,8 @@ class DonationServiceTest {
 
     @Test
     void shouldCreateDonationOfferWithAiTriageAndPublishRabbitEvent() {
-        Citizen citizen = Citizen.builder().id(1L).name("Mariana").cpf("12345678900").phone("11988881111").neighborhood("Centro").build();
-        CollectionPoint point = CollectionPoint.builder().id(1L).name("Ponto Centro").cnpj("12345678000199").address("Rua A").neighborhood("Centro").phone("1144332200").active(true).build();
+        Citizen citizen = Citizen.builder().id(1L).name("Mariana").cpf("12345678900").phone("11988881111").address("Rua A, 100").build();
+        CollectionPoint point = CollectionPoint.builder().id(1L).name("Ponto Centro").cnpj("12345678000199").address("Rua B, 200").neighborhood("Centro").phone("1144332200").active(true).build();
         Category category = Category.builder().id(1L).name("Alimentos").description("Alimentos não perecíveis").build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(citizen));
@@ -84,8 +84,8 @@ class DonationServiceTest {
 
     @Test
     void shouldCreateHelpRequestWithoutCollectionPointAndAllowAnotherCitizenToFulfill() {
-        Citizen requester = Citizen.builder().id(1L).name("Mariana").neighborhood("Centro").build();
-        Citizen helper = Citizen.builder().id(2L).name("Carlos").neighborhood("Centro").build();
+        Citizen requester = Citizen.builder().id(1L).name("Mariana").address("Rua A, 100").build();
+        Citizen helper = Citizen.builder().id(2L).name("Carlos").address("Rua C, 300").build();
         Category category = Category.builder().id(1L).name("Alimentos").build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(requester));
@@ -127,7 +127,7 @@ class DonationServiceTest {
 
     @Test
     void shouldRejectDonationOfferWhenCollectionPointIsInactive() {
-        Citizen citizen = Citizen.builder().id(1L).name("Mariana").build();
+        Citizen citizen = Citizen.builder().id(1L).name("Mariana").address("Rua A, 100").build();
         CollectionPoint inactivePoint = CollectionPoint.builder().id(2L).name("Ponto Fechado").active(false).build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(citizen));

@@ -4,6 +4,7 @@ import br.com.fiap.colabs.dtos.AccountResponse;
 import br.com.fiap.colabs.dtos.LoginRequest;
 import br.com.fiap.colabs.dtos.LoginResponse;
 import br.com.fiap.colabs.dtos.RegisterRequest;
+import br.com.fiap.colabs.security.AuthService;
 import br.com.fiap.colabs.services.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AccountService accountService;
+    private final AuthService authService;
 
     @PostMapping("/register")
     @Operation(summary = "Cadastro único: cria a conta e o perfil de cidadão ou de ponto de coleta")
@@ -30,6 +32,6 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Autenticar usuário e emitir token JWT")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(accountService.login(request));
+        return ResponseEntity.ok(authService.login(request));
     }
 }

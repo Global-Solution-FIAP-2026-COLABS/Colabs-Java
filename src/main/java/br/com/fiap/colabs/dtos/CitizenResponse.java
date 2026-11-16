@@ -7,15 +7,15 @@ public record CitizenResponse(
         String name,
         String cpf,
         String phone,
-        String neighborhood
+        String address
 ) {
-    public static CitizenResponse fromEntity(Citizen citizen) {
+    public static CitizenResponse fromEntity(Citizen c) {
         return new CitizenResponse(
-                citizen.getId(),
-                citizen.getName(),
-                citizen.getCpf(),
-                citizen.getPhone(),
-                citizen.getNeighborhood()
+                c.getId(),
+                c.getName(),
+                c.getCpf(),
+                c.getPhone(),
+                c.getAddress()
         );
     }
 }

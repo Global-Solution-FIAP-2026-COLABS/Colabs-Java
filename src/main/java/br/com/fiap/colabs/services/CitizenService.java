@@ -35,15 +35,18 @@ public class CitizenService {
 
     @Transactional
     public CitizenResponse create(CitizenRequest request) {
-        if (citizenRepository.existsByCpf(request.cpf())) {
+        String cleanCpf = normalizeCpf(request.cpf());
+        if (citizenRepository.existsByCpf(cleanCpf)) {
             throw new BusinessConflictException("Já existe um cidadão cadastrado com este CPF");
         }
+
         Citizen citizen = Citizen.builder()
                 .name(request.name())
-                .cpf(request.cpf())
+                .cpf(cleanCpf)
                 .phone(request.phone())
-                .neighborhood(request.neighborhood())
+                .address(request.address())
                 .build();
+
         return CitizenResponse.fromEntity(citizenRepository.save(citizen));
     }
 
@@ -53,22 +56,29 @@ public class CitizenService {
         Citizen citizen = citizenRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cidadão não encontrado: " + id));
 
-        if (!citizen.getCpf().equals(request.cpf()) && citizenRepository.existsByCpf(request.cpf())) {
-            throw new BusinessConflictException("Já existe outro cidadão cadastrado com este CPF");
+        String cleanCpf = normalizeCpf(request.cpf());
+        if (!citizen.getCpf().equals(cleanCpf) && citizenRepository.existsByCpf(cleanCpf)) {
+            throw new BusinessConflictException("CPF já utilizado por outro cidadão");
         }
 
         citizen.setName(request.name());
-        citizen.setCpf(request.cpf());
+        citizen.setCpf(cleanCpf);
         citizen.setPhone(request.phone());
-        citizen.setNeighborhood(request.neighborhood());
+        citizen.setAddress(request.address());
 
         return CitizenResponse.fromEntity(citizenRepository.save(citizen));
     }
 
     @Transactional
     public void delete(Long id) {
-        Citizen citizen = citizenRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cidadão não encontrado: " + id));
-        citizenRepository.delete(citizen);
+        currentUser.requireCitizenAccess(id);
+        if (!citizenRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cidadão não encontrado: " + id);
+        }
+        citizenRepository.deleteById(id);
+    }
+
+    private String normalizeCpf(String cpf) {
+        return cpf.replaceAll("\\D", "");
     }
 }

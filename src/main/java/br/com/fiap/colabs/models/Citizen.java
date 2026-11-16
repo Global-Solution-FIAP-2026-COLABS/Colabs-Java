@@ -25,6 +25,6 @@ public class Citizen {
     @Column(nullable = false, length = 20)
     private String phone;
 
-    @Column(nullable = false, length = 80)
-    private String neighborhood;
+    @Column(name = "ADDRESS", length = 200)
+    private String address;
 }
