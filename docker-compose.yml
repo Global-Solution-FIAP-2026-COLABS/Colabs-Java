@@ -31,4 +31,5 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
       SPRING_RABBITMQ_LISTENER_SIMPLE_AUTO_STARTUP: "true"
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no arquivo .env}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder-offline-fallback}

@@ -54,7 +54,7 @@ O **Colabs** resolve esse problema oferecendo uma plataforma centralizada onde:
 | **Mensageria Assíncrona** | RabbitMQ (`spring-amqp`) | `TopicExchange` (`colabs.donations.exchange`) + JSON Converter |
 | **Cache em Memória** | Spring Cache | `@Cacheable` em catálogos + `@EvictCatalogCaches` |
 | **Documentação Interativa** | SpringDoc OpenAPI / Swagger | `2.8.5` (`/swagger-ui.html` com esquema `bearerAuth`) |
-| **Testes Unitários** | JUnit 5 + Mockito + Jakarta Validation | 8 testes cobrindo DTOs, `CurrentUser` e `DonationService` |
+| **Testes Unitários** | JUnit 5 + Mockito + Jakarta Validation | 27 testes cobrindo DTOs, `CurrentUser`, `AccountService` e `DonationService` |
 | **Containerização** | Docker & Docker Compose | Multi-stage build Maven/Temurin 17 + RabbitMQ Management |
 
 ---
@@ -133,7 +133,9 @@ src/
     └── java/br/com/fiap/colabs/
         ├── dtos/RequestValidationTest.java
         ├── security/CurrentUserTest.java
-        └── services/DonationServiceTest.java
+        └── services/
+            ├── AccountServiceTest.java
+            └── DonationServiceTest.java
 
 
 ---
@@ -148,7 +150,7 @@ A API é **stateless**: o login devolve um JWT (HS256, validade de 24h) que deve
 | `ROLE_POINT_MANAGER` | Ver e revisar (`APPROVED`, `REJECTED`, `DELIVERED`) as doações do **seu** ponto de coleta e atualizar esse ponto |
 | `ROLE_ADMIN` | Acesso total: CRUD de categorias, pontos, cidadãos e visão de todas as doações |
 
-Endpoints são protegidos por `@PreAuthorize` e, além do papel, a posse do recurso é validada em `CurrentUser` (um cidadão não acessa dados de outro; um gestor só mexe no próprio ponto). Respostas de erro seguem o padrão `ErrorResponse` (`timestamp`, `status`, `error`, `message`, `path`, `fieldErrors`).
+Endpoints são protegidos por `@PreAuthorize` e, além do papel, a posse do recurso é validada em `CurrentUser` (um cidadão não acessa dados de outro; um gestor só mexe no próprio ponto). Requisições sem token válido recebem `401`; sem permissão, `403`. Respostas de erro seguem o padrão `ErrorResponse` (`timestamp`, `status`, `error`, `message`, `path`, `fieldErrors`).
 
 ---
 
@@ -249,13 +251,15 @@ O Flyway cria as tabelas automaticamente na primeira execução (`V1__create_tab
 
 ## Credenciais de Teste (Data Seeder)
 
-Ao subir a aplicação, o seeder cadastra categorias, pontos de coleta e usuários de exemplo.
+Na primeira execução (quando ainda não existe nenhuma conta), o `DataSeederConfig` cadastra 5 categorias, 1 ponto de coleta ("Ponto Solidário Centro"), 1 cidadão e 3 contas de teste. Para desativar o seed: `app.seed.enabled=false`.
 
 | Papel | E-mail | Senha |
 | :--- | :--- | :--- |
-| `ROLE_ADMIN` | **[PREENCHER]** | **[PREENCHER]** |
-| `ROLE_POINT_MANAGER` | **[PREENCHER]** | **[PREENCHER]** |
-| `ROLE_CITIZEN` | **[PREENCHER]** | **[PREENCHER]** |
+| `ROLE_ADMIN` | `admin@colabs.com` | `Admin@123` |
+| `ROLE_POINT_MANAGER` (Ponto Solidário Centro) | `gestor@colabs.com` | `Gestor@123` |
+| `ROLE_CITIZEN` (Maria Silva) | `cidadao@colabs.com` | `Cidadao@123` |
+
+> Contas `ADMIN` só existem via seed; o endpoint público de cadastro cria apenas cidadãos e pontos de coleta.
 
 ---
 
@@ -368,7 +372,7 @@ curl -X POST http://localhost:8080/donations \
 ./mvnw test
 ```
 
-> `ColabsApplicationTests` carrega o contexto completo e exige as variáveis de ambiente e o banco acessíveis. Os testes unitários (DTOs, `CurrentUser` e `DonationService`) rodam sem infraestrutura.
+> Os 27 testes unitários (`RequestValidationTest`, `CurrentUserTest`, `AccountServiceTest`, `DonationServiceTest`) não precisam de banco nem de broker. `ColabsApplicationTests` carrega o contexto completo e exige as variáveis de ambiente e o banco acessíveis.
 
 ---
 
