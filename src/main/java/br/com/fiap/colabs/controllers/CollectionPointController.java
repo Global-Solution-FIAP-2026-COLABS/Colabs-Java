@@ -26,12 +26,11 @@ public class CollectionPointController {
     private final CollectionPointService collectionPointService;
 
     @GetMapping
-    @Operation(summary = "Listar pontos de coleta paginados (com filtro opcional por bairro)")
+    @Operation(summary = "Listar pontos de coleta paginados")
     public ResponseEntity<Page<CollectionPointResponse>> findAll(
-            @RequestParam(required = false) String neighborhood,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable
     ) {
-        return ResponseEntity.ok(collectionPointService.findAll(neighborhood, pageable));
+        return ResponseEntity.ok(collectionPointService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

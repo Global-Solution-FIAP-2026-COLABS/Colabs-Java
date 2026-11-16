@@ -22,14 +22,11 @@ public class CollectionPointService {
     private final CollectionPointRepository collectionPointRepository;
     private final CurrentUser currentUser;
 
-    @Cacheable(value = "collectionPoints", key = "(#neighborhood ?: 'all') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    @Cacheable(value = "collectionPoints", key = "'all_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     @Transactional(readOnly = true)
-    public Page<CollectionPointResponse> findAll(String neighborhood, Pageable pageable) {
-        if (neighborhood != null && !neighborhood.isBlank()) {
-            return collectionPointRepository.findByNeighborhoodContainingIgnoreCase(neighborhood, pageable)
-                    .map(CollectionPointResponse::fromEntity);
-        }
-        return collectionPointRepository.findAll(pageable).map(CollectionPointResponse::fromEntity);
+    public Page<CollectionPointResponse> findAll(Pageable pageable) {
+        return collectionPointRepository.findAll(pageable)
+                .map(CollectionPointResponse::fromEntity);
     }
 
     @Transactional(readOnly = true)
