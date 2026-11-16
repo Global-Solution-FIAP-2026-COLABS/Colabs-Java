@@ -19,10 +19,6 @@ public record CollectionPointRequest(
         @Size(min = 5, max = 200, message = "Address must be between 5 and 200 characters")
         String address,
 
-        @NotBlank(message = "Neighborhood is required")
-        @Size(min = 2, max = 80, message = "Neighborhood must be between 2 and 80 characters")
-        String neighborhood,
-
         @NotBlank(message = "Phone number is required")
         @Size(min = 8, max = 20, message = "Phone number must be between 8 and 20 characters")
         String phone,

@@ -35,8 +35,6 @@ public record RegisterRequest(
         String cpf,
 
         @Pattern(regexp = "^(\\d{14}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})$", message = "CNPJ deve conter 14 dígitos ou formato 00.000.000/0000-00")
-        String cnpj,
+        String cnpj
 
-        @Size(min = 2, max = 80, message = "Bairro deve ter entre 2 e 80 caracteres")
-        String neighborhood
 ) {}
