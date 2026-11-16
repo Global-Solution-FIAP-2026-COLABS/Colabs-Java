@@ -1,6 +1,7 @@
 package br.com.fiap.colabs.services;
 
 import br.com.fiap.colabs.dtos.AiTriageResult;
+import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.UrgencyLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -22,24 +23,35 @@ public class DonationTriageAiService {
         this.apiKey = apiKey;
     }
 
-    public AiTriageResult triageDonation(String title, String description, Integer quantity, String chosenCategory) {
+    public AiTriageResult triageDonation(
+            RecordType type,
+            String title,
+            String description,
+            Integer quantity,
+            String chosenCategory
+    ) {
         if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("sk-placeholder")) {
-            return fallbackTriage(title, description, quantity, chosenCategory);
+            return fallbackTriage(type, title, description, quantity, chosenCategory);
         }
 
         try {
+            String recordLabel = (type == RecordType.HELP_REQUEST)
+                    ? "SOLICITAÇÃO DE AJUDA DE CIDADÃO"
+                    : "OFERTA DE DOAÇÃO";
+
             String prompt = """
-                    Você é um especialista em triagem humanitária e logística de doações comunitárias.
-                    Analise a doação abaixo e responda ESTRITAMENTE no formato JSON validado com os campos:
+                    Você é um especialista em triagem humanitária e logística de rede solidária comunitária.
+                    Analise o registro abaixo e responda ESTRITAMENTE no formato JSON validado com os campos:
                     - urgency: um de [LOW, MEDIUM, HIGH, CRITICAL]
                     - suggestedCategory: nome curto da categoria mais adequada em português
                     - triageReason: justificativa objetiva em até 200 caracteres
 
+                    Tipo de registro: %s
                     Título: %s
                     Descrição: %s
                     Quantidade: %d
-                    Categoria informada pelo doador: %s
-                    """.formatted(title, description, quantity, chosenCategory);
+                    Categoria informada: %s
+                    """.formatted(recordLabel, title, description, quantity, chosenCategory);
 
             AiTriageResult result = chatClient.prompt()
                     .user(prompt)
@@ -53,18 +65,25 @@ public class DonationTriageAiService {
             log.warn("[Spring AI] Falha ao consultar OpenAI, acionando triagem determinística de fallback: {}", ex.getMessage());
         }
 
-        return fallbackTriage(title, description, quantity, chosenCategory);
+        return fallbackTriage(type, title, description, quantity, chosenCategory);
     }
 
-    private AiTriageResult fallbackTriage(String title, String description, Integer quantity, String chosenCategory) {
+    private AiTriageResult fallbackTriage(
+            RecordType type,
+            String title,
+            String description,
+            Integer quantity,
+            String chosenCategory
+    ) {
         String text = (title + " " + description).toLowerCase();
+        String prefix = (type == RecordType.HELP_REQUEST) ? "Triagem de pedido: " : "Triagem de doação: ";
 
         if (text.contains("emergência") || text.contains("enchente") || text.contains("remédio")
                 || text.contains("medicamento") || text.contains("água") || text.contains("leite infantil")) {
             return new AiTriageResult(
                     UrgencyLevel.CRITICAL,
                     chosenCategory,
-                    "Triagem automática: item essencial de resposta imediata ou assistência emergencial."
+                    prefix + "item essencial de resposta imediata ou assistência emergencial."
             );
         }
 
@@ -73,22 +92,22 @@ public class DonationTriageAiService {
             return new AiTriageResult(
                     UrgencyLevel.HIGH,
                     chosenCategory,
-                    "Triagem automática: alta demanda comunitária ou lote expressivo de suprimentos básicos."
+                    prefix + "alta demanda comunitária ou lote expressivo de suprimentos básicos."
             );
         }
 
-        if (text.contains("roupa") || text.contains("calçado") || text.contains("colchão")) {
+        if (text.contains("roupa") || text.contains("calçado") || text.contains("colchão") || type == RecordType.HELP_REQUEST) {
             return new AiTriageResult(
                     UrgencyLevel.MEDIUM,
                     chosenCategory,
-                    "Triagem automática: item de uso contínuo com prioridade moderada de distribuição."
+                    prefix + "demanda comunitária de uso contínuo com prioridade moderada."
             );
         }
 
         return new AiTriageResult(
                 UrgencyLevel.LOW,
                 chosenCategory,
-                "Triagem automática: item complementar encaminhado para triagem padrão do ponto de coleta."
+                prefix + "item complementar encaminhado para triagem padrão."
         );
     }
 }

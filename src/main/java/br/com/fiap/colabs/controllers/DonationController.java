@@ -4,6 +4,7 @@ import br.com.fiap.colabs.dtos.DonationCreateRequest;
 import br.com.fiap.colabs.dtos.DonationResponse;
 import br.com.fiap.colabs.dtos.DonationReviewRequest;
 import br.com.fiap.colabs.enums.DonationStatus;
+import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.services.DonationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,13 +24,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/donations")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Doações", description = "Registro com triagem por IA, revisão por ponto de coleta e mensageria RabbitMQ")
+@Tag(name = "Doações e Pedidos", description = "Ofertas de doação, pedidos de ajuda comunitária, triagem por IA e mensageria RabbitMQ")
 public class DonationController {
 
     private final DonationService donationService;
 
     @GetMapping
-    @Operation(summary = "Listar doações paginadas conforme perfil autenticado")
+    @Operation(summary = "Listar registros próprios ou vinculados ao perfil autenticado")
     public ResponseEntity<Page<DonationResponse>> findAll(
             @RequestParam(required = false) DonationStatus status,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable
@@ -37,22 +38,39 @@ public class DonationController {
         return ResponseEntity.ok(donationService.findAll(status, pageable));
     }
 
+    @GetMapping("/community")
+    @Operation(summary = "Mural comunitário: visualizar pedidos de ajuda e ofertas abertas para cidadãos e pontos de coleta")
+    public ResponseEntity<Page<DonationResponse>> findCommunityFeed(
+            @RequestParam(required = false) RecordType type,
+            @RequestParam(required = false) DonationStatus status,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(donationService.findCommunityFeed(type, status, pageable));
+    }
+
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar detalhes de uma doação por ID")
+    @Operation(summary = "Buscar detalhes e triagem por IA de uma doação ou pedido")
     public ResponseEntity<DonationResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(donationService.findById(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
-    @Operation(summary = "Cadastrar nova doação com triagem automática via Spring AI")
+    @Operation(summary = "Cadastrar oferta de doação (DONATION_OFFER) ou pedido de ajuda (HELP_REQUEST) com triagem via Spring AI")
     public ResponseEntity<DonationResponse> create(@Valid @RequestBody DonationCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(donationService.create(request));
     }
 
+    @PatchMapping("/{id}/fulfill")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'POINT_MANAGER', 'ADMIN')")
+    @Operation(summary = "Assumir/atender um pedido de ajuda ou oferta aberta no mural comunitário")
+    public ResponseEntity<DonationResponse> fulfill(@PathVariable Long id) {
+        return ResponseEntity.ok(donationService.fulfill(id));
+    }
+
     @PutMapping("/{id}/review")
     @PreAuthorize("hasAnyRole('POINT_MANAGER', 'ADMIN')")
-    @Operation(summary = "Aprovar, rejeitar ou marcar entrega de doação (gestor do ponto ou ADMIN)")
+    @Operation(summary = "Aprovar, rejeitar ou confirmar entrega (APPROVED, REJECTED, DELIVERED)")
     public ResponseEntity<DonationResponse> review(
             @PathVariable Long id,
             @Valid @RequestBody DonationReviewRequest request
@@ -62,7 +80,7 @@ public class DonationController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
-    @Operation(summary = "Cancelar doação pendente (cidadão autor ou ADMIN)")
+    @Operation(summary = "Cancelar doação ou pedido pendente (cidadão autor ou ADMIN)")
     public ResponseEntity<Void> cancel(@PathVariable Long id) {
         donationService.cancel(id);
         return ResponseEntity.noContent().build();

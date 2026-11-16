@@ -1,6 +1,7 @@
 package br.com.fiap.colabs.dtos;
 
 import br.com.fiap.colabs.enums.DonationStatus;
+import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.UrgencyLevel;
 import br.com.fiap.colabs.models.Donation;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 public record DonationResponse(
         Long id,
+        RecordType type,
         String title,
         String description,
         Integer quantity,
@@ -20,14 +22,18 @@ public record DonationResponse(
         String reviewNotes,
         Long citizenId,
         String citizenName,
+        String citizenNeighborhood,
         Long collectionPointId,
         String collectionPointName,
+        Long fulfilledByCitizenId,
+        String fulfilledByCitizenName,
         Long categoryId,
         String categoryName
 ) {
     public static DonationResponse fromEntity(Donation d) {
         return new DonationResponse(
                 d.getId(),
+                d.getType(),
                 d.getTitle(),
                 d.getDescription(),
                 d.getQuantity(),
@@ -40,8 +46,11 @@ public record DonationResponse(
                 d.getReviewNotes(),
                 d.getCitizen().getId(),
                 d.getCitizen().getName(),
-                d.getCollectionPoint().getId(),
-                d.getCollectionPoint().getName(),
+                d.getCitizen().getNeighborhood(),
+                d.getCollectionPoint() != null ? d.getCollectionPoint().getId() : null,
+                d.getCollectionPoint() != null ? d.getCollectionPoint().getName() : null,
+                d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getId() : null,
+                d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getName() : null,
                 d.getCategory().getId(),
                 d.getCategory().getName()
         );
