@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Service
@@ -20,7 +21,21 @@ public class TokenService {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration-ms}") long expirationMs
     ) {
-        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+        } catch (Exception e) {
+            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        }
+        if (keyBytes.length < 32) {
+            try {
+                keyBytes = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(secret.getBytes(StandardCharsets.UTF_8));
+            } catch (java.security.NoSuchAlgorithmException ex) {
+                keyBytes = java.util.Arrays.copyOf(keyBytes, 32);
+            }
+        }
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMs = expirationMs;
     }
 
