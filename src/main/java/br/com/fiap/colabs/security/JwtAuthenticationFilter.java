@@ -1,5 +1,6 @@
 package br.com.fiap.colabs.security;
 
+import br.com.fiap.colabs.repositories.AccountRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
-    private final AuthService authService;
+    private final AccountRepository accountRepository;
 
     @Override
     protected void doFilterInternal(
@@ -39,8 +40,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = tokenService.extractUsername(token);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = authService.loadUserByUsername(username);
-                if (tokenService.isTokenValid(token, userDetails.getUsername())) {
+                UserDetails userDetails = accountRepository.findByEmail(username.trim().toLowerCase())
+                        .map(AccountUserDetails::new)
+                        .orElse(null);                if (tokenService.isTokenValid(token, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
