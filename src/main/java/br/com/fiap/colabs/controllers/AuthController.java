@@ -1,9 +1,9 @@
 package br.com.fiap.colabs.controllers;
 
-import br.com.fiap.colabs.dtos.AccountRequest;
 import br.com.fiap.colabs.dtos.AccountResponse;
 import br.com.fiap.colabs.dtos.LoginRequest;
 import br.com.fiap.colabs.dtos.LoginResponse;
+import br.com.fiap.colabs.dtos.RegisterRequest;
 import br.com.fiap.colabs.services.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +22,8 @@ public class AuthController {
     private final AccountService accountService;
 
     @PostMapping("/register")
-    @Operation(summary = "Registrar nova conta vinculada a um papel")
-    public ResponseEntity<AccountResponse> register(@Valid @RequestBody AccountRequest request) {
+    @Operation(summary = "Cadastro único: cria a conta e o perfil de cidadão ou de ponto de coleta")
+    public ResponseEntity<AccountResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(accountService.register(request));
     }
 
