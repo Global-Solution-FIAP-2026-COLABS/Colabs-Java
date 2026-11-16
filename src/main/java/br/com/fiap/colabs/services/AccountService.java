@@ -78,9 +78,6 @@ public class AccountService {
             if (request.cnpj() == null || request.cnpj().isBlank()) {
                 throw new IllegalArgumentException("CNPJ é obrigatório para cadastro de ponto de coleta");
             }
-            if (request.neighborhood() == null || request.neighborhood().isBlank()) {
-                throw new IllegalArgumentException("Bairro é obrigatório para cadastro de ponto de coleta");
-            }
 
             String cleanCnpj = request.cnpj().replaceAll("\\D", "");
             if (collectionPointRepository.existsByCnpj(cleanCnpj)) {

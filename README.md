@@ -322,12 +322,12 @@ Envie apenas o bloco correspondente ao `type` (o outro bloco deve ficar ausente)
 
 ### Pontos de coleta
 
-| Método | Rota | Acesso |
-| :--- | :--- | :--- |
-| GET | `/collection-points?neighborhood=` , `/collection-points/{id}` | Público |
-| POST | `/collection-points` | ADMIN |
-| PUT | `/collection-points/{id}` | POINT_MANAGER (do próprio ponto) ou ADMIN |
-| DELETE | `/collection-points/{id}` | ADMIN |
+| Método | Rota                        | Acesso |
+| :--- |:----------------------------| :--- |
+| GET |  `/collection-points/{id}`  | Público |
+| POST | `/collection-points`        | ADMIN |
+| PUT | `/collection-points/{id}`   | POINT_MANAGER (do próprio ponto) ou ADMIN |
+| DELETE | `/collection-points/{id}`   | ADMIN |
 
 ### Cidadãos
 
