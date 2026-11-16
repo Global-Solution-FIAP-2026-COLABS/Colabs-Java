@@ -92,7 +92,6 @@ public class AccountService {
                             .name(request.name())
                             .cnpj(cleanCnpj)
                             .address(request.address())
-                            .neighborhood(request.neighborhood())
                             .phone(request.phone())
                             .active(true)
                             .build()

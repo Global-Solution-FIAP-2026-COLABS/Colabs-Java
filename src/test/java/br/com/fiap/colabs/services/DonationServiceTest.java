@@ -56,7 +56,7 @@ class DonationServiceTest {
     @Test
     void shouldCreateDonationOfferWithAiTriageAndPublishRabbitEvent() {
         Citizen citizen = Citizen.builder().id(1L).name("Mariana").cpf("12345678900").phone("11988881111").address("Rua A, 100").build();
-        CollectionPoint point = CollectionPoint.builder().id(1L).name("Ponto Centro").cnpj("12345678000199").address("Rua B, 200").neighborhood("Centro").phone("1144332200").active(true).build();
+        CollectionPoint point = CollectionPoint.builder().id(1L).name("Ponto Centro").cnpj("12345678000199").address("Rua B, 200").phone("1144332200").active(true).build();
         Category category = Category.builder().id(1L).name("Alimentos").description("Alimentos não perecíveis").build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(citizen));

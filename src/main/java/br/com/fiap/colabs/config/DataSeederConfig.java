@@ -43,7 +43,6 @@ public class DataSeederConfig {
                                     .name("Centro Comunitário Colabs Paulista")
                                     .cnpj("12345678000199")
                                     .address("Av. Paulista, 1106 - Bela Vista")
-                                    .neighborhood("Bela Vista")
                                     .phone("(11) 3385-8010")
                                     .active(true)
                                     .build()

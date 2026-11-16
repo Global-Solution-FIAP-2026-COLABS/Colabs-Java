@@ -7,7 +7,6 @@ public record CollectionPointResponse(
         String name,
         String cnpj,
         String address,
-        String neighborhood,
         String phone,
         Boolean active
 ) {
@@ -17,7 +16,6 @@ public record CollectionPointResponse(
                 point.getName(),
                 point.getCnpj(),
                 point.getAddress(),
-                point.getNeighborhood(),
                 point.getPhone(),
                 point.getActive()
         );

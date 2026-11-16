@@ -49,7 +49,6 @@ public class CollectionPointService {
                 .name(request.name())
                 .cnpj(request.cnpj())
                 .address(request.address())
-                .neighborhood(request.neighborhood())
                 .phone(request.phone())
                 .active(request.active() != null ? request.active() : true)
                 .build();
@@ -70,7 +69,6 @@ public class CollectionPointService {
         point.setName(request.name());
         point.setCnpj(request.cnpj());
         point.setAddress(request.address());
-        point.setNeighborhood(request.neighborhood());
         point.setPhone(request.phone());
         if (request.active() != null) {
             point.setActive(request.active());

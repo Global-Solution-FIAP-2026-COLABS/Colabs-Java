@@ -25,8 +25,6 @@ public class CollectionPoint {
     @Column(nullable = false, length = 200)
     private String address;
 
-    @Column(nullable = false, length = 80)
-    private String neighborhood;
 
     @Column(nullable = false, length = 20)
     private String phone;
