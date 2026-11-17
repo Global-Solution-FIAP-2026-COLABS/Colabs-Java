@@ -1,9 +1,6 @@
 package br.com.fiap.colabs.services;
 
-import br.com.fiap.colabs.dtos.AiTriageResult;
-import br.com.fiap.colabs.dtos.DonationCreateRequest;
-import br.com.fiap.colabs.dtos.DonationResponse;
-import br.com.fiap.colabs.dtos.DonationReviewRequest;
+import br.com.fiap.colabs.dtos.*;
 import br.com.fiap.colabs.enums.DonationStatus;
 import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.Roles;
@@ -14,6 +11,7 @@ import br.com.fiap.colabs.exceptions.ResourceNotFoundException;
 import br.com.fiap.colabs.models.Citizen;
 import br.com.fiap.colabs.models.CollectionPoint;
 import br.com.fiap.colabs.models.Donation;
+import br.com.fiap.colabs.models.DonationItem;
 import br.com.fiap.colabs.repositories.CitizenRepository;
 import br.com.fiap.colabs.repositories.CollectionPointRepository;
 import br.com.fiap.colabs.repositories.DonationRepository;
@@ -111,15 +109,13 @@ public class DonationService {
                 request.type(),
                 request.title(),
                 request.description(),
-                request.quantity(),
-                request.category()
+                request.items()
         );
 
         Donation donation = Donation.builder()
                 .type(request.type())
                 .title(request.title())
                 .description(request.description())
-                .quantity(request.quantity())
                 .status(DonationStatus.PENDING)
                 .urgency(triage.urgency())
                 .aiSuggestedCategory(triage.suggestedCategory())
@@ -127,8 +123,17 @@ public class DonationService {
                 .createdAt(LocalDateTime.now())
                 .citizen(citizen)
                 .collectionPoint(point)
-                .category(request.category())
                 .build();
+
+        for (DonationItemRequest itemReq : request.items()) {
+            donation.addItem(
+                    DonationItem.builder()
+                            .name(itemReq.name())
+                            .quantity(itemReq.quantity())
+                            .category(itemReq.category())
+                            .build()
+            );
+        }
 
         Donation saved = donationRepository.save(donation);
         publishEvent("donation.created", "DONATION_CREATED", saved);

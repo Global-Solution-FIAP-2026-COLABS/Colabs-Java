@@ -9,6 +9,7 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,25 +34,37 @@ class RequestValidationTest {
     }
 
     @Test
-    void shouldFailWhenDonationQuantityIsZeroOrDescriptionTooShort() {
-        DonationCreateRequest request = new DonationCreateRequest(
-                RecordType.DONATION_OFFER, "A", "Curta", 0, 1L, 1L, DonationCategory.FOOD
+    void shouldFailWhenDonationItemsListIsEmptyOrItemQuantityIsZero() {
+        DonationCreateRequest emptyItems = new DonationCreateRequest(
+                RecordType.DONATION_OFFER, "A", "Curta", 1L, 1L, List.of()
         );
-        Set<ConstraintViolation<DonationCreateRequest>> violations = validator.validate(request);
-
+        Set<ConstraintViolation<DonationCreateRequest>> violations = validator.validate(emptyItems);
         assertTrue(violations.size() >= 3);
+
+        DonationCreateRequest invalidItem = new DonationCreateRequest(
+                RecordType.DONATION_OFFER,
+                "Kit Higiene",
+                "Itens diversos para doação comunitária",
+                1L,
+                1L,
+                List.of(new DonationItemRequest("Sabonete", 0, DonationCategory.HYGIENE))
+        );
+        Set<ConstraintViolation<DonationCreateRequest>> itemViolations = validator.validate(invalidItem);
+        assertFalse(itemViolations.isEmpty());
     }
 
     @Test
-    void shouldPassWhenHelpRequestWithoutCollectionPointIsValid() {
+    void shouldPassWhenHelpRequestWithMultipleItemsIsValid() {
         DonationCreateRequest request = new DonationCreateRequest(
                 RecordType.HELP_REQUEST,
-                "Cestas Básicas Urgentes",
-                "Família precisando de alimentos não perecíveis esta semana",
-                2,
+                "Apoio Familiar Semanal",
+                "Família precisando de alimentos e itens de higiene esta semana",
                 1L,
                 null,
-                DonationCategory.FOOD
+                List.of(
+                        new DonationItemRequest("Arroz 5kg", 2, DonationCategory.FOOD),
+                        new DonationItemRequest("Sabonete", 6, DonationCategory.HYGIENE)
+                )
         );
         Set<ConstraintViolation<DonationCreateRequest>> violations = validator.validate(request);
 

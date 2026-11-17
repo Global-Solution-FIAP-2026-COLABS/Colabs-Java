@@ -1,11 +1,13 @@
 package br.com.fiap.colabs.dtos;
 
-import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.RecordType;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 public record DonationCreateRequest(
         @NotNull(message = "Tipo do registro é obrigatório (DONATION_OFFER ou HELP_REQUEST)")
@@ -19,15 +21,12 @@ public record DonationCreateRequest(
         @Size(min = 10, max = 500, message = "Descrição deve ter entre 10 e 500 caracteres")
         String description,
 
-        @NotNull(message = "Quantidade é obrigatória")
-        @Min(value = 1, message = "Quantidade mínima é 1")
-        Integer quantity,
-
         @NotNull(message = "ID do cidadão é obrigatório")
         Long citizenId,
 
         Long collectionPointId,
 
-        @NotNull(message = "Categoria é obrigatória")
-        DonationCategory category
+        @NotEmpty(message = "Informe pelo menos 1 item para o pedido ou doação")
+        @Valid
+        List<DonationItemRequest> items
 ) {}
