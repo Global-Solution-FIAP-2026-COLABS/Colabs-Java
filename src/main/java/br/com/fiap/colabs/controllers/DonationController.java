@@ -3,6 +3,7 @@ package br.com.fiap.colabs.controllers;
 import br.com.fiap.colabs.dtos.DonationCreateRequest;
 import br.com.fiap.colabs.dtos.DonationResponse;
 import br.com.fiap.colabs.dtos.DonationReviewRequest;
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.DonationStatus;
 import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.services.DonationService;
@@ -20,6 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/donations")
 @RequiredArgsConstructor
@@ -28,6 +33,17 @@ import org.springframework.web.bind.annotation.*;
 public class DonationController {
 
     private final DonationService donationService;
+
+    public record CategoryOption(String value, String label) {}
+
+    @GetMapping("/categories")
+    @Operation(summary = "Listar categorias pré-definidas disponíveis (FOOD, CLOTHING, HYGIENE, MEDICINE, FURNITURE, OTHER)")
+    public ResponseEntity<List<CategoryOption>> listCategories() {
+        List<CategoryOption> categories = Arrays.stream(DonationCategory.values())
+                .map(c -> new CategoryOption(c.name(), c.getLabel()))
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
 
     @GetMapping
     @Operation(summary = "Listar registros próprios ou vinculados ao perfil autenticado")

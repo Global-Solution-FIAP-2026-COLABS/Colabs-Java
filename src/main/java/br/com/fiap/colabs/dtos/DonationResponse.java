@@ -1,5 +1,6 @@
 package br.com.fiap.colabs.dtos;
 
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.DonationStatus;
 import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.UrgencyLevel;
@@ -27,8 +28,8 @@ public record DonationResponse(
         String collectionPointName,
         Long fulfilledByCitizenId,
         String fulfilledByCitizenName,
-        Long categoryId,
-        String categoryName
+        DonationCategory category,
+        String categoryLabel
 ) {
     public static DonationResponse fromEntity(Donation d) {
         return new DonationResponse(
@@ -51,8 +52,8 @@ public record DonationResponse(
                 d.getCollectionPoint() != null ? d.getCollectionPoint().getName() : null,
                 d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getId() : null,
                 d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getName() : null,
-                d.getCategory().getId(),
-                d.getCategory().getName()
+                d.getCategory(),
+                d.getCategory().getLabel()
         );
     }
 }

@@ -20,17 +20,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/collection-points")
 @RequiredArgsConstructor
-@Tag(name = "Pontos de Coleta", description = "Gerenciamento de pontos solidários de recebimento")
+@Tag(name = "Pontos de Coleta", description = "Gerenciamento de pontos de coleta e recebimento de doações")
 public class CollectionPointController {
 
     private final CollectionPointService collectionPointService;
 
     @GetMapping
-    @Operation(summary = "Listar pontos de coleta paginados")
+    @Operation(summary = "Listar pontos de coleta ativos (ADMIN pode passar includeInactive=true)")
     public ResponseEntity<Page<CollectionPointResponse>> findAll(
+            @RequestParam(defaultValue = "false") boolean includeInactive,
             @ParameterObject @PageableDefault(size = 10) Pageable pageable
     ) {
-        return ResponseEntity.ok(collectionPointService.findAll(pageable));
+        return ResponseEntity.ok(collectionPointService.findAll(includeInactive, pageable));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +43,7 @@ public class CollectionPointController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Cadastrar novo ponto de coleta (somente ADMIN)")
+    @Operation(summary = "Cadastrar novo ponto de coleta (ADMIN)")
     public ResponseEntity<CollectionPointResponse> create(@Valid @RequestBody CollectionPointRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(collectionPointService.create(request));
     }
@@ -50,17 +51,20 @@ public class CollectionPointController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('POINT_MANAGER', 'ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Atualizar ponto de coleta (gestor vinculado ou ADMIN)")
-    public ResponseEntity<CollectionPointResponse> update(@PathVariable Long id, @Valid @RequestBody CollectionPointRequest request) {
+    @Operation(summary = "Atualizar dados ou status ativo de um ponto de coleta")
+    public ResponseEntity<CollectionPointResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CollectionPointRequest request
+    ) {
         return ResponseEntity.ok(collectionPointService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('POINT_MANAGER', 'ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Remover ponto de coleta (somente ADMIN)")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        collectionPointService.delete(id);
+    @Operation(summary = "Desativar ponto de coleta (soft delete)")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+        collectionPointService.deactivate(id);
         return ResponseEntity.noContent().build();
     }
 }

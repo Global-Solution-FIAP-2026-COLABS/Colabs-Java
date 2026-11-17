@@ -1,5 +1,6 @@
 package br.com.fiap.colabs.models;
 
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.DonationStatus;
 import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.UrgencyLevel;
@@ -50,9 +51,9 @@ public class Donation {
     @JoinColumn(name = "COLLECTION_POINT_ID")
     private CollectionPoint collectionPoint;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "CATEGORY_ID", nullable = false)
-    private Category category;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "CATEGORY", nullable = false, length = 30)
+    private DonationCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "FULFILLED_BY_CITIZEN_ID")

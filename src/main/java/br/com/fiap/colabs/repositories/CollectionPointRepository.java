@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CollectionPointRepository extends JpaRepository<CollectionPoint, Long> {
     boolean existsByCnpj(String cnpj);
+    Page<CollectionPoint> findByActiveTrue(Pageable pageable);
 }

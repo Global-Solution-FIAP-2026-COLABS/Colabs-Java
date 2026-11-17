@@ -1,6 +1,5 @@
 package br.com.fiap.colabs.services;
 
-import br.com.fiap.colabs.config.EvictCatalogCaches;
 import br.com.fiap.colabs.dtos.CollectionPointRequest;
 import br.com.fiap.colabs.dtos.CollectionPointResponse;
 import br.com.fiap.colabs.exceptions.BusinessConflictException;
@@ -9,7 +8,6 @@ import br.com.fiap.colabs.models.CollectionPoint;
 import br.com.fiap.colabs.repositories.CollectionPointRepository;
 import br.com.fiap.colabs.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,11 +20,12 @@ public class CollectionPointService {
     private final CollectionPointRepository collectionPointRepository;
     private final CurrentUser currentUser;
 
-    @Cacheable(value = "collectionPoints", key = "'all_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     @Transactional(readOnly = true)
-    public Page<CollectionPointResponse> findAll(Pageable pageable) {
-        return collectionPointRepository.findAll(pageable)
-                .map(CollectionPointResponse::fromEntity);
+    public Page<CollectionPointResponse> findAll(boolean includeInactive, Pageable pageable) {
+        if (includeInactive && currentUser.isAdmin()) {
+            return collectionPointRepository.findAll(pageable).map(CollectionPointResponse::fromEntity);
+        }
+        return collectionPointRepository.findByActiveTrue(pageable).map(CollectionPointResponse::fromEntity);
     }
 
     @Transactional(readOnly = true)
@@ -36,35 +35,37 @@ public class CollectionPointService {
         return CollectionPointResponse.fromEntity(point);
     }
 
-    @EvictCatalogCaches
     @Transactional
     public CollectionPointResponse create(CollectionPointRequest request) {
-        if (collectionPointRepository.existsByCnpj(request.cnpj())) {
+        String cleanCnpj = normalizeCnpj(request.cnpj());
+        if (collectionPointRepository.existsByCnpj(cleanCnpj)) {
             throw new BusinessConflictException("Já existe um ponto de coleta cadastrado com este CNPJ");
         }
+
         CollectionPoint point = CollectionPoint.builder()
                 .name(request.name())
-                .cnpj(request.cnpj())
+                .cnpj(cleanCnpj)
                 .address(request.address())
                 .phone(request.phone())
                 .active(request.active() != null ? request.active() : true)
                 .build();
+
         return CollectionPointResponse.fromEntity(collectionPointRepository.save(point));
     }
 
-    @EvictCatalogCaches
     @Transactional
     public CollectionPointResponse update(Long id, CollectionPointRequest request) {
         currentUser.requireCollectionPointAccess(id);
         CollectionPoint point = collectionPointRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ponto de coleta não encontrado: " + id));
 
-        if (!point.getCnpj().equals(request.cnpj()) && collectionPointRepository.existsByCnpj(request.cnpj())) {
-            throw new BusinessConflictException("Já existe outro ponto de coleta cadastrado com este CNPJ");
+        String cleanCnpj = normalizeCnpj(request.cnpj());
+        if (!point.getCnpj().equals(cleanCnpj) && collectionPointRepository.existsByCnpj(cleanCnpj)) {
+            throw new BusinessConflictException("CNPJ já utilizado por outro ponto de coleta");
         }
 
         point.setName(request.name());
-        point.setCnpj(request.cnpj());
+        point.setCnpj(cleanCnpj);
         point.setAddress(request.address());
         point.setPhone(request.phone());
         if (request.active() != null) {
@@ -74,11 +75,16 @@ public class CollectionPointService {
         return CollectionPointResponse.fromEntity(collectionPointRepository.save(point));
     }
 
-    @EvictCatalogCaches
     @Transactional
-    public void delete(Long id) {
+    public void deactivate(Long id) {
+        currentUser.requireCollectionPointAccess(id);
         CollectionPoint point = collectionPointRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ponto de coleta não encontrado: " + id));
-        collectionPointRepository.delete(point);
+        point.setActive(false);
+        collectionPointRepository.save(point);
+    }
+
+    private String normalizeCnpj(String cnpj) {
+        return cnpj.replaceAll("\\D", "");
     }
 }

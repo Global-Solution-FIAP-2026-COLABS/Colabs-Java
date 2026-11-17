@@ -3,6 +3,7 @@ package br.com.fiap.colabs.services;
 import br.com.fiap.colabs.dtos.AiTriageResult;
 import br.com.fiap.colabs.dtos.DonationCreateRequest;
 import br.com.fiap.colabs.dtos.DonationResponse;
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.DonationStatus;
 import br.com.fiap.colabs.enums.RecordType;
 import br.com.fiap.colabs.enums.Roles;
@@ -10,11 +11,9 @@ import br.com.fiap.colabs.enums.UrgencyLevel;
 import br.com.fiap.colabs.events.DonationEventPublisher;
 import br.com.fiap.colabs.exceptions.BusinessConflictException;
 import br.com.fiap.colabs.models.Account;
-import br.com.fiap.colabs.models.Category;
 import br.com.fiap.colabs.models.Citizen;
 import br.com.fiap.colabs.models.CollectionPoint;
 import br.com.fiap.colabs.models.Donation;
-import br.com.fiap.colabs.repositories.CategoryRepository;
 import br.com.fiap.colabs.repositories.CitizenRepository;
 import br.com.fiap.colabs.repositories.CollectionPointRepository;
 import br.com.fiap.colabs.repositories.DonationRepository;
@@ -42,8 +41,6 @@ class DonationServiceTest {
     @Mock
     private CollectionPointRepository collectionPointRepository;
     @Mock
-    private CategoryRepository categoryRepository;
-    @Mock
     private DonationTriageAiService triageAiService;
     @Mock
     private DonationEventPublisher eventPublisher;
@@ -57,13 +54,11 @@ class DonationServiceTest {
     void shouldCreateDonationOfferWithAiTriageAndPublishRabbitEvent() {
         Citizen citizen = Citizen.builder().id(1L).name("Mariana").cpf("12345678900").phone("11988881111").address("Rua A, 100").build();
         CollectionPoint point = CollectionPoint.builder().id(1L).name("Ponto Centro").cnpj("12345678000199").address("Rua B, 200").phone("1144332200").active(true).build();
-        Category category = Category.builder().id(1L).name("Alimentos").description("Alimentos não perecíveis").build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(citizen));
         when(collectionPointRepository.findById(1L)).thenReturn(Optional.of(point));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(triageAiService.triageDonation(eq(RecordType.DONATION_OFFER), anyString(), anyString(), anyInt(), anyString()))
-                .thenReturn(new AiTriageResult(UrgencyLevel.HIGH, "Alimentos", "Alta demanda comunitária"));
+        when(triageAiService.triageDonation(eq(RecordType.DONATION_OFFER), anyString(), anyString(), anyInt(), eq(DonationCategory.FOOD)))
+                .thenReturn(new AiTriageResult(UrgencyLevel.HIGH, "FOOD", "Alta demanda comunitária"));
         when(donationRepository.save(any(Donation.class))).thenAnswer(inv -> {
             Donation d = inv.getArgument(0);
             d.setId(42L);
@@ -71,12 +66,14 @@ class DonationServiceTest {
         });
 
         DonationCreateRequest req = new DonationCreateRequest(
-                RecordType.DONATION_OFFER, "Cestas Básicas", "Doação de 10 cestas completas", 10, 1L, 1L, 1L
+                RecordType.DONATION_OFFER, "Cestas Básicas", "Doação de 10 cestas completas", 10, 1L, 1L, DonationCategory.FOOD
         );
         DonationResponse response = donationService.create(req);
 
         assertEquals(42L, response.id());
         assertEquals(RecordType.DONATION_OFFER, response.type());
+        assertEquals(DonationCategory.FOOD, response.category());
+        assertEquals("Alimentos", response.categoryLabel());
         assertEquals(DonationStatus.PENDING, response.status());
         assertEquals(UrgencyLevel.HIGH, response.urgency());
         verify(eventPublisher).publish(eq("donation.created"), any());
@@ -86,12 +83,10 @@ class DonationServiceTest {
     void shouldCreateHelpRequestWithoutCollectionPointAndAllowAnotherCitizenToFulfill() {
         Citizen requester = Citizen.builder().id(1L).name("Mariana").address("Rua A, 100").build();
         Citizen helper = Citizen.builder().id(2L).name("Carlos").address("Rua C, 300").build();
-        Category category = Category.builder().id(1L).name("Alimentos").build();
 
         when(citizenRepository.findById(1L)).thenReturn(Optional.of(requester));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(triageAiService.triageDonation(eq(RecordType.HELP_REQUEST), anyString(), anyString(), anyInt(), anyString()))
-                .thenReturn(new AiTriageResult(UrgencyLevel.CRITICAL, "Alimentos", "Pedido urgente"));
+        when(triageAiService.triageDonation(eq(RecordType.HELP_REQUEST), anyString(), anyString(), anyInt(), eq(DonationCategory.FOOD)))
+                .thenReturn(new AiTriageResult(UrgencyLevel.CRITICAL, "FOOD", "Pedido urgente"));
 
         Donation savedRequest = Donation.builder()
                 .id(77L)
@@ -102,13 +97,13 @@ class DonationServiceTest {
                 .status(DonationStatus.PENDING)
                 .urgency(UrgencyLevel.CRITICAL)
                 .citizen(requester)
-                .category(category)
+                .category(DonationCategory.FOOD)
                 .build();
 
         when(donationRepository.save(any(Donation.class))).thenReturn(savedRequest);
 
         DonationCreateRequest req = new DonationCreateRequest(
-                RecordType.HELP_REQUEST, "Leite Infantil", "Necessidade urgente para bebê", 3, 1L, null, 1L
+                RecordType.HELP_REQUEST, "Leite Infantil", "Necessidade urgente para bebê", 3, 1L, null, DonationCategory.FOOD
         );
         DonationResponse created = donationService.create(req);
         assertNull(created.collectionPointId());
@@ -134,7 +129,7 @@ class DonationServiceTest {
         when(collectionPointRepository.findById(2L)).thenReturn(Optional.of(inactivePoint));
 
         DonationCreateRequest req = new DonationCreateRequest(
-                RecordType.DONATION_OFFER, "Roupas", "Casacos de inverno higienizados", 5, 1L, 2L, 1L
+                RecordType.DONATION_OFFER, "Roupas", "Casacos de inverno higienizados", 5, 1L, 2L, DonationCategory.CLOTHING
         );
 
         assertThrows(BusinessConflictException.class, () -> donationService.create(req));

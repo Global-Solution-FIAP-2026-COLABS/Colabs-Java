@@ -1,5 +1,6 @@
 package br.com.fiap.colabs.dtos;
 
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.RecordType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -27,6 +28,6 @@ public record DonationCreateRequest(
 
         Long collectionPointId,
 
-        @NotNull(message = "ID da categoria é obrigatório")
-        Long categoryId
+        @NotNull(message = "Categoria é obrigatória")
+        DonationCategory category
 ) {}

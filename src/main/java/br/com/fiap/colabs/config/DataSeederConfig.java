@@ -2,11 +2,9 @@ package br.com.fiap.colabs.config;
 
 import br.com.fiap.colabs.enums.Roles;
 import br.com.fiap.colabs.models.Account;
-import br.com.fiap.colabs.models.Category;
 import br.com.fiap.colabs.models.Citizen;
 import br.com.fiap.colabs.models.CollectionPoint;
 import br.com.fiap.colabs.repositories.AccountRepository;
-import br.com.fiap.colabs.repositories.CategoryRepository;
 import br.com.fiap.colabs.repositories.CitizenRepository;
 import br.com.fiap.colabs.repositories.CollectionPointRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class DataSeederConfig {
 
-    private final CategoryRepository categoryRepository;
     private final CollectionPointRepository collectionPointRepository;
     private final CitizenRepository citizenRepository;
     private final AccountRepository accountRepository;
@@ -30,13 +27,6 @@ public class DataSeederConfig {
     @Bean
     public CommandLineRunner seedInitialData() {
         return args -> {
-            if (categoryRepository.count() == 0) {
-                categoryRepository.save(Category.builder().name("Alimentos").description("Cestas básicas, itens não perecíveis e água potável").build());
-                categoryRepository.save(Category.builder().name("Vestuário").description("Roupas, agasalhos, cobertores e calçados em bom estado").build());
-                categoryRepository.save(Category.builder().name("Higiene e Limpeza").description("Itens de higiene pessoal, fraldas e produtos de limpeza").build());
-                categoryRepository.save(Category.builder().name("Medicamentos e Saúde").description("Itens de primeiros socorros e suprimentos médicos básicos").build());
-            }
-
             CollectionPoint defaultPoint = collectionPointRepository.findAll().stream().findFirst().orElseGet(() ->
                     collectionPointRepository.save(
                             CollectionPoint.builder()

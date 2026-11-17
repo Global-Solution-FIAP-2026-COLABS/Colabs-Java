@@ -1,5 +1,6 @@
 package br.com.fiap.colabs.dtos;
 
+import br.com.fiap.colabs.enums.DonationCategory;
 import br.com.fiap.colabs.enums.RecordType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -34,7 +35,7 @@ class RequestValidationTest {
     @Test
     void shouldFailWhenDonationQuantityIsZeroOrDescriptionTooShort() {
         DonationCreateRequest request = new DonationCreateRequest(
-                RecordType.DONATION_OFFER, "A", "Curta", 0, 1L, 1L, 1L
+                RecordType.DONATION_OFFER, "A", "Curta", 0, 1L, 1L, DonationCategory.FOOD
         );
         Set<ConstraintViolation<DonationCreateRequest>> violations = validator.validate(request);
 
@@ -50,7 +51,7 @@ class RequestValidationTest {
                 2,
                 1L,
                 null,
-                1L
+                DonationCategory.FOOD
         );
         Set<ConstraintViolation<DonationCreateRequest>> violations = validator.validate(request);
 

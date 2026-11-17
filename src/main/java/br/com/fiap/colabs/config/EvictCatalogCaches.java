@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Caching(evict = {
-        @CacheEvict(value = "categories", allEntries = true),
         @CacheEvict(value = "collectionPoints", allEntries = true)
 })
 public @interface EvictCatalogCaches {

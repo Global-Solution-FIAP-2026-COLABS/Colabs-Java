@@ -11,11 +11,9 @@ import br.com.fiap.colabs.events.DonationEvent;
 import br.com.fiap.colabs.events.DonationEventPublisher;
 import br.com.fiap.colabs.exceptions.BusinessConflictException;
 import br.com.fiap.colabs.exceptions.ResourceNotFoundException;
-import br.com.fiap.colabs.models.Category;
 import br.com.fiap.colabs.models.Citizen;
 import br.com.fiap.colabs.models.CollectionPoint;
 import br.com.fiap.colabs.models.Donation;
-import br.com.fiap.colabs.repositories.CategoryRepository;
 import br.com.fiap.colabs.repositories.CitizenRepository;
 import br.com.fiap.colabs.repositories.CollectionPointRepository;
 import br.com.fiap.colabs.repositories.DonationRepository;
@@ -38,7 +36,6 @@ public class DonationService {
     private final DonationRepository donationRepository;
     private final CitizenRepository citizenRepository;
     private final CollectionPointRepository collectionPointRepository;
-    private final CategoryRepository categoryRepository;
     private final DonationTriageAiService triageAiService;
     private final DonationEventPublisher eventPublisher;
     private final CurrentUser currentUser;
@@ -110,15 +107,12 @@ public class DonationService {
             throw new IllegalArgumentException("collectionPointId é obrigatório para ofertas de doação (DONATION_OFFER)");
         }
 
-        Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + request.categoryId()));
-
         AiTriageResult triage = triageAiService.triageDonation(
                 request.type(),
                 request.title(),
                 request.description(),
                 request.quantity(),
-                category.getName()
+                request.category()
         );
 
         Donation donation = Donation.builder()
@@ -133,7 +127,7 @@ public class DonationService {
                 .createdAt(LocalDateTime.now())
                 .citizen(citizen)
                 .collectionPoint(point)
-                .category(category)
+                .category(request.category())
                 .build();
 
         Donation saved = donationRepository.save(donation);
