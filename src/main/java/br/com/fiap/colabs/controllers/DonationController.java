@@ -85,8 +85,8 @@ public class DonationController {
     }
 
     @PutMapping("/{id}/review")
-    @PreAuthorize("hasAnyRole('POINT_MANAGER', 'ADMIN')")
-    @Operation(summary = "Aprovar, rejeitar ou confirmar entrega (APPROVED, REJECTED, DELIVERED)")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    @Operation(summary = "Avaliar/revisar doação ou pedido (exclusivo do cidadão autor)")
     public ResponseEntity<DonationResponse> review(
             @PathVariable Long id,
             @Valid @RequestBody DonationReviewRequest request
@@ -100,5 +100,12 @@ public class DonationController {
     public ResponseEntity<Void> cancel(@PathVariable Long id) {
         donationService.cancel(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    @Operation(summary = "Marcar como concluído/entregue um registro em atendimento criado pelo cidadão")
+    public ResponseEntity<DonationResponse> complete(@PathVariable Long id) {
+        return ResponseEntity.ok(donationService.complete(id));
     }
 }

@@ -189,11 +189,7 @@ public class DonationService {
         Donation donation = donationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Registro não encontrado: " + id));
 
-        if (donation.getCollectionPoint() != null) {
-            currentUser.requireCollectionPointAccess(donation.getCollectionPoint().getId());
-        } else if (!currentUser.isAdmin()) {
-            throw new AccessDeniedException("Apenas administradores ou o ponto vinculado podem revisar este pedido");
-        }
+        currentUser.requireCitizenAccess(donation.getCitizen().getId());
 
         if (donation.getStatus() == DonationStatus.CANCELLED) {
             throw new BusinessConflictException("Não é possível revisar um registro já cancelado");
@@ -211,6 +207,27 @@ public class DonationService {
 
         Donation saved = donationRepository.save(donation);
         publishEvent("donation.reviewed", "DONATION_REVIEWED", saved);
+
+        return DonationResponse.fromEntity(saved);
+    }
+
+    @Transactional
+    public DonationResponse complete(Long id) {
+        Donation donation = donationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Registro não encontrado com ID: " + id));
+
+        currentUser.requireCitizenAccess(donation.getCitizen().getId());
+
+        if (donation.getStatus() != DonationStatus.IN_PROGRESS) {
+            throw new BusinessConflictException("Apenas registros em atendimento podem ser concluídos.");
+        }
+
+        donation.setStatus(DonationStatus.DELIVERED);
+        donation.setReviewedAt(LocalDateTime.now());
+        donation.setReviewNotes("Concluído pelo cidadão autor");
+
+        Donation saved = donationRepository.save(donation);
+        publishEvent("donation.delivered", "DONATION_DELIVERED", saved);
 
         return DonationResponse.fromEntity(saved);
     }
