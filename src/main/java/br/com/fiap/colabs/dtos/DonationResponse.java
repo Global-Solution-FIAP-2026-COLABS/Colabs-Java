@@ -27,6 +27,7 @@ public record DonationResponse(
         String citizenAddress,
         Long collectionPointId,
         String collectionPointName,
+        String collectionPointAddress,
         Long fulfilledByCitizenId,
         String fulfilledByCitizenName,
         List<DonationItemResponse> items
@@ -55,6 +56,7 @@ public record DonationResponse(
                 d.getCitizen().getAddress(),
                 d.getCollectionPoint() != null ? d.getCollectionPoint().getId() : null,
                 d.getCollectionPoint() != null ? d.getCollectionPoint().getName() : null,
+                d.getCollectionPoint() != null ? d.getCollectionPoint().getAddress() : null,
                 d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getId() : null,
                 d.getFulfilledByCitizen() != null ? d.getFulfilledByCitizen().getName() : null,
                 entityItems.stream().map(DonationItemResponse::fromEntity).toList()
