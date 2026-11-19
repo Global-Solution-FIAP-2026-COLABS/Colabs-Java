@@ -244,6 +244,23 @@ public class DonationService {
         publishEvent("donation.cancelled", "DONATION_CANCELLED", saved);
     }
 
+    @Transactional(readOnly = true)
+    public Page<DonationResponse> findFulfilledByMe(DonationStatus status, Pageable pageable) {
+        AccountUserDetails user = currentUser.getPrincipal();
+
+        if (user.getCitizenId() == null) {
+            throw new AccessDeniedException("Apenas perfis de cidadão possuem atendimentos assumidos");
+        }
+
+        if (status != null) {
+            return donationRepository.findByFulfilledByCitizenIdAndStatus(user.getCitizenId(), status, pageable)
+                    .map(DonationResponse::fromEntity);
+        }
+
+        return donationRepository.findByFulfilledByCitizenId(user.getCitizenId(), pageable)
+                .map(DonationResponse::fromEntity);
+    }
+
     private void validateReadAccess(Donation donation) {
         AccountUserDetails user = currentUser.getPrincipal();
         if (user.getRole() == Roles.ROLE_ADMIN) {

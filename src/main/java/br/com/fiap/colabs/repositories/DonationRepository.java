@@ -16,4 +16,6 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
     Page<Donation> findByType(RecordType type, Pageable pageable);
     Page<Donation> findByTypeAndStatus(RecordType type, DonationStatus status, Pageable pageable);
     Page<Donation> findByStatusIn(List<DonationStatus> statuses, Pageable pageable);
+    Page<Donation> findByFulfilledByCitizenId(Long citizenId, Pageable pageable);
+    Page<Donation> findByFulfilledByCitizenIdAndStatus(Long citizenId, DonationStatus status, Pageable pageable);
 }

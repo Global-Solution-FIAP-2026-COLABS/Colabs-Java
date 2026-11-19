@@ -109,4 +109,14 @@ public class DonationController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/fulfilled")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    @Operation(summary = "Listar pedidos de ajuda e ofertas assumidos pelo cidadão autenticado")
+    public ResponseEntity<Page<DonationResponse>> findFulfilledByMe(
+            @RequestParam(required = false) DonationStatus status,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(donationService.findFulfilledByMe(status, pageable));
+    }
+
 }
