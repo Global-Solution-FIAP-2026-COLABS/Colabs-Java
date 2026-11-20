@@ -10,6 +10,9 @@
 API RESTful desenvolvida em **Java 17** e **Spring Boot 3.4.3** para conectar cidadãos a pontos de coleta comunitários por meio de ofertas de doação e pedidos de ajuda, utilizando **Spring AI (OpenAI)** para triagem automática de urgência e **RabbitMQ** para publicação e consumo assíncrono de eventos de ciclo de vida.
 
 ---
+Link da aplicação: https://colabs-java.onrender.com
+Link do vídeo: https://youtu.be/MBfJnEJDB5U
+---
 
 ## Sumário
 
